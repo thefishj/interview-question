@@ -1,0 +1,144 @@
+﻿sql
+CREATE TABLE user_wallet (
+  user_id INT PRIMARY KEY,
+  balance FLOAT NOT NULL DEFAULT 0.0
+);
+
+CREATE TABLE wallet_transactions (
+  id INT PRIMARY KEY,
+  user_id INT NOT NULL,
+  type INT NOT NULL,
+  amount FLOAT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES user_wallet(user_id)
+);
+
+
+查询用户钱包余额
+
+import java.sql.*;
+
+public class WalletAPI {
+    private Connection conn;
+
+    public WalletAPI() {
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "root", "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public float getUserWalletBalance(int userId) {
+        String sql = "SELECT balance FROM user_wallet WHERE user_id = ?";
+        float balance = 0.0f;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                balance = rs.getFloat("balance");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return balance;
+    }
+}
+
+    用户消费100元的接口
+
+import java.sql.*;
+
+public class WalletAPI {
+    private Connection conn;
+
+    public WalletAPI() {
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "root", "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deductFromUserWallet(int userId, float amount) {
+        String sql = "UPDATE user_wallet SET balance = balance - ? WHERE user_id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setFloat(1, amount);
+            pstmt.setInt(2, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+    用户退款20元的接口
+
+import java.sql.*;
+
+public class WalletAPI {
+    private Connection conn;
+
+    public WalletAPI() {
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "root", "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refundToUserWallet(int userId, float amount) {
+        String sql = "UPDATE user_wallet SET balance = balance + ? WHERE user_id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setFloat(1, amount);
+            pstmt.setInt(2, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+    查询用户钱包金额变动明细的接口
+
+import java.sql.*;
+
+public class WalletAPI {
+    private Connection conn;
+
+    public WalletAPI() {
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "root", "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getUserWalletTransactions(int userId) {
+        String sql = "SELECT * FROM wallet_transactions WHERE user_id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                int transactionId = rs.getInt("id");
+                int transactionType = rs.getInt("type");
+                float transactionAmount = rs.getFloat("amount");
+                String transactionDescription = rs.getString("description");
+                Timestamp transactionTimestamp = rs.getTimestamp("created_at");
+
+                // Process the transaction data as needed
+                // ...
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
